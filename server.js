@@ -3,6 +3,7 @@ let app = express();
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
 let etudiant = require('./routes/etudiants');
+let matiere = require('./routes/matieres');
 
 let mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -55,11 +56,24 @@ app.route(prefix + '/assignments/:id')
   .get(assignment.getAssignment)
   .delete(assignment.deleteAssignment);
 
+// http://serveur..../matieres
+app.route(prefix + '/matieres')
+  .post(matiere.postMatiere)
+  .put(matiere.updateMatiere)
+  .get(matiere.getMatieres);
 
+app.route(prefix + '/matieres/:id')
+  .get(matiere.getMatiere)
+  .delete(matiere.deleteMatiere);
+
+// http://serveur..../etudiants
 app.route(prefix + '/etudiants')
   .post(etudiant.postEtudiant)
   .put(etudiant.updateEtudiant)
   .get(etudiant.getEtudiants);
+
+app.route(prefix + '/etudiants/groups')
+  .get(etudiant.getEtudiantsGroups)
 
 app.route(prefix + '/etudiants/:id')
   .get(etudiant.getEtudiant)

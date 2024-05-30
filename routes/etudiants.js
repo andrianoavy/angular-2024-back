@@ -32,6 +32,18 @@ function getEtudiants(req, res){
     );
 }
 
+
+function getEtudiantsGroups(_, res){
+    Etudiant.distinct('group', (err, data) => {
+            if(err){
+                res.send(err)
+            }
+
+            res.send(data);
+        }
+    );
+}
+
 // Récupérer un etudiant par son id (GET)
 function getEtudiant(req, res){
     let etudiantId = req.params.id;
@@ -97,4 +109,4 @@ function deleteEtudiant(req, res) {
 
 
 
-module.exports = { getEtudiants, postEtudiant, getEtudiant, updateEtudiant, deleteEtudiant };
+module.exports = { getEtudiants, getEtudiantsGroups, postEtudiant, getEtudiant, updateEtudiant, deleteEtudiant };
