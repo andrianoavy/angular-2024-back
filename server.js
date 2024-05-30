@@ -57,7 +57,10 @@ app.route(prefix + '/assignments/:id')
   .delete(assignment.deleteAssignment);
 
 app.route(prefix + '/assignments/noter')
-  .put(assignment.putNoterEtudiant)
+  .put(assignment.putNoter)
+
+app.route(prefix + '/assignments/annuler-note')
+  .put(assignment.putAnnulerNote)
 
 // http://serveur..../matieres
 app.route(prefix + '/matieres')

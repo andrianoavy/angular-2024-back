@@ -41,14 +41,37 @@ function getAssignments(req, res) {
     );
 }
 
-function putNoterEtudiant(req, res) {
-    const { assignmentId, ...etudiant } = req.body;
-    console.log(etudiant);
-    console.log(assignmentId);
+function putAnnulerNote(req, res) {
+    const { assignmentId, note, dateDeRendu, remarques, ...etudiant } = req.body;
+
     Assignment.findOneAndUpdate(
         { _id: ObjectId(assignmentId) },
         {
-            $pull: { notRendus: { _id: ObjectId(etudiant._id) } },
+            $pull: { rendus: { _id: ObjectId(etudiant._id) } },
+            $pull: { rendus: { _id:etudiant._id } },
+            $push: { nonRendus: etudiant }
+        },
+            { new: true, useFindAndModify: false },
+        (err, data) => {
+            if (err) {
+                res.send(err)
+            }
+            res.send(data);
+        }
+    );
+}
+
+function putNoter(req, res) {
+    const { assignmentId, ...etudiant } = req.body;
+    if(!etudiant.dateDeRendu) {
+        etudiant.dateDeRendu = Date.now();
+    }
+    console.log(etudiant._id);
+    Assignment.findOneAndUpdate(
+        { _id: ObjectId(assignmentId) },
+        {
+            $pull: { nonRendus: { _id: ObjectId(etudiant._id) } },
+            $pull: { nonRendus: { _id: etudiant._id } },
             $push: { rendus: etudiant }
         },
             { new: true, useFindAndModify: false },
@@ -129,4 +152,4 @@ function deleteAssignment(req, res) {
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, putNoterEtudiant };
+module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, putNoter , putAnnulerNote};
