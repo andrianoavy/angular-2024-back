@@ -56,6 +56,9 @@ app.route(prefix + '/assignments/:id')
   .get(assignment.getAssignment)
   .delete(assignment.deleteAssignment);
 
+app.route(prefix + '/assignments/noter')
+  .put(assignment.putNoterEtudiant)
+
 // http://serveur..../matieres
 app.route(prefix + '/matieres')
   .post(matiere.postMatiere)
