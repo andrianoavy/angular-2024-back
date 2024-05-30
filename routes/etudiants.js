@@ -13,17 +13,31 @@ function getEtudiants(req, res){
 }
 */
 
-function getEtudiants(req, res){
+function getEtudiants(req, res) {
     let aggregateQuery = Etudiant.aggregate();
 
+    if (req.query['search']) {
+        const searchText = req.query['search'];
+
+        aggregateQuery = Etudiant.aggregate([{
+            $match: {
+                $or: [
+                    { nom: { $regex: searchText, $options: 'i' } },
+                    { group: { $regex: searchText, $options: 'i' } }
+                ]
+            }
+        }
+        ]);
+    }
+
     Etudiant.aggregatePaginate(
-        aggregateQuery, 
+        aggregateQuery,
         {
             page: parseInt(req.query.page) || 1,
             limit: parseInt(req.query.limit) || 10
         },
         (err, data) => {
-            if(err){
+            if (err) {
                 res.send(err)
             }
 
@@ -33,22 +47,22 @@ function getEtudiants(req, res){
 }
 
 
-function getEtudiantsGroups(_, res){
+function getEtudiantsGroups(_, res) {
     Etudiant.distinct('group', (err, data) => {
-            if(err){
-                res.send(err)
-            }
-
-            res.send(data);
+        if (err) {
+            res.send(err)
         }
+
+        res.send(data);
+    }
     );
 }
 
 // Récupérer un etudiant par son id (GET)
-function getEtudiant(req, res){
+function getEtudiant(req, res) {
     let etudiantId = req.params.id;
-    Etudiant.findById(etudiantId, (err, etudiant) =>{
-        if(err){res.send(err)}
+    Etudiant.findById(etudiantId, (err, etudiant) => {
+        if (err) { res.send(err) }
         res.json(etudiant);
     })
 
@@ -61,7 +75,7 @@ function getEtudiant(req, res){
 }
 
 // Ajout d'un etudiant (POST)
-function postEtudiant(req, res){
+function postEtudiant(req, res) {
     let etudiant = new Etudiant();
     etudiant.id = req.body.id;
     etudiant.nom = req.body.nom;
@@ -70,11 +84,11 @@ function postEtudiant(req, res){
     console.log("POST etudiant reçu :");
     console.log(etudiant)
 
-    etudiant.save( (err) => {
-        if(err){
+    etudiant.save((err) => {
+        if (err) {
             res.send('cant post etudiant ', err);
         }
-        res.json({ message: `${etudiant.nom} saved!`})
+        res.json({ message: `${etudiant.nom} saved!` })
     })
 }
 
@@ -82,15 +96,15 @@ function postEtudiant(req, res){
 function updateEtudiant(req, res) {
     console.log("UPDATE recu etudiant : ");
     console.log(req.body);
-    Etudiant.findByIdAndUpdate(req.body._id, req.body, {new: true}, (err, etudiant) => {
+    Etudiant.findByIdAndUpdate(req.body._id, req.body, { new: true }, (err, etudiant) => {
         if (err) {
             console.log(err);
             res.send(err)
         } else {
-          res.json({message: 'updated'})
+            res.json({ message: 'updated' })
         }
 
-      // console.log('updated ', etudiant)
+        // console.log('updated ', etudiant)
     });
 
 }
@@ -103,7 +117,7 @@ function deleteEtudiant(req, res) {
         if (err) {
             res.send(err);
         }
-        res.json({message: `${etudiant.nom} deleted`});
+        res.json({ message: `${etudiant.nom} deleted` });
     })
 }
 

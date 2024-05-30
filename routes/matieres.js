@@ -14,12 +14,24 @@ function getMatieres(req, res){
 */
 
 function getMatieres(req, res) {
-    if(req.query['search']) {
-        filterMatieres(res, req.query['search']);
-        return;
-    }
-
     let aggregateQuery = Matiere.aggregate();
+    if (req.query['search']) {
+        const searchText = req.query['search'];
+        if (req.query['no-paging']) {
+            filterMatieres(res, searchText);
+            return;
+        }
+
+        aggregateQuery = Matiere.aggregate([{
+            $match: {
+                $or: [
+                    { nom: { $regex: searchText, $options: 'i' } },
+                    { responsable: { $regex: searchText, $options: 'i' } }
+                ]
+            }
+        }
+        ]);
+    }
 
     Matiere.aggregatePaginate(
         aggregateQuery,
@@ -44,12 +56,12 @@ function filterMatieres(res, searchText) {
             { responsable: { $regex: searchText, $options: 'i' } }
         ]
     }
-    , (err, data) => {
-        if (err) {
-            res.send(err)
-        }
-        res.send(data);
-    }).limit(3);
+        , (err, data) => {
+            if (err) {
+                res.send(err)
+            }
+            res.send(data);
+        }).limit(3);
 }
 
 // Récupérer un matiere par son id (GET)
