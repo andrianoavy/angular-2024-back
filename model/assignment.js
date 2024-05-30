@@ -8,6 +8,7 @@ let AssignmentSchema = Schema({
     dateLimite: Date,
     rendus: Array,
     nonRendus:Array,
+    groups:Array|undefined
 });
 
 /*

@@ -22,15 +22,15 @@ function getAssignmentsStudents(idEtudiant) {
                 $project: {
                     nom: 1,
                     dateLimite: 1,
-                    matiere:1,
+                    matiere: 1,
                     rendus: {
                         $filter: {
                             input: '$rendus',
                             as: 'etudiant',
-                            cond: { 
+                            cond: {
                                 $or: [
-                                    {$eq: ['$$etudiant._id', idEtudiant]},
-                                    {$eq: ['$$etudiant._id', ObjectId(idEtudiant)]}
+                                    { $eq: ['$$etudiant._id', idEtudiant] },
+                                    { $eq: ['$$etudiant._id', ObjectId(idEtudiant)] }
                                 ]
                             }
                         }
@@ -39,10 +39,10 @@ function getAssignmentsStudents(idEtudiant) {
                         $filter: {
                             input: '$nonRendus',
                             as: 'etudiant',
-                            cond: { 
+                            cond: {
                                 $or: [
-                                    {$eq: ['$$etudiant._id', idEtudiant]},
-                                    {$eq: ['$$etudiant._id', ObjectId(idEtudiant)]}
+                                    { $eq: ['$$etudiant._id', idEtudiant] },
+                                    { $eq: ['$$etudiant._id', ObjectId(idEtudiant)] }
                                 ]
                             }
                         }
@@ -53,7 +53,7 @@ function getAssignmentsStudents(idEtudiant) {
                 $project: {
                     nom: 1,
                     dateLimite: 1,
-                    matiere:1,
+                    matiere: 1,
                     etudiantData: {
                         $cond: {
                             if: { $gt: [{ $size: '$rendus' }, 0] },
@@ -172,7 +172,7 @@ function putNoter(req, res) {
 // Récupérer un assignment par son id (GET)
 function getAssignment(req, res) {
     let assignmentId = req.params.id;
-    Assignment.findById(assignmentId, (err, assignment) => {
+    Assignment.findById(assignmentId, async (err, assignment) => {
         if (err) { res.send(err) }
         res.json(assignment);
     })
@@ -194,6 +194,7 @@ async function postAssignment(req, res) {
     assignment.rendus = req.body.rendus;
     const groups = req.body.group
     assignment.nonRendus = await Etudiant.find({ group: { $in: groups } });
+    assignment.groups = groups;
 
     console.log("POST assignment reçu :");
     console.log(assignment)
