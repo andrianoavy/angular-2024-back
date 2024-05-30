@@ -33,7 +33,7 @@ function getEtudiants(req, res) {
     Etudiant.aggregatePaginate(
         aggregateQuery,
         {
-            page: parseInt(req.query.page) || 1,
+            page: parseInt(req.query.page)+1 || 1,
             limit: parseInt(req.query.limit) || 10
         },
         (err, data) => {
