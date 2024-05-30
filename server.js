@@ -2,13 +2,15 @@ let express = require('express');
 let app = express();
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
+let etudiant = require('./routes/etudiants');
 
 let mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 // mongoose.set('debug', true);
 
 // remplacer toute cette chaine par l'URI de connexion à votre propre base dans le cloud s
-const uri = 'mongodb+srv://mb1:toto@cluster0.lxvcyxy.mongodb.net/assignments?retryWrites=true&w=majority&appName=Cluster0';
+// const uri = 'mongodb+srv://mb1:toto@cluster0.lxvcyxy.mongodb.net/assignments?retryWrites=true&w=majority&appName=Cluster0';
+const uri = 'mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.10.3';
 const options = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -53,6 +55,15 @@ app.route(prefix + '/assignments/:id')
   .get(assignment.getAssignment)
   .delete(assignment.deleteAssignment);
 
+
+app.route(prefix + '/etudiants')
+  .post(etudiant.postEtudiant)
+  .put(etudiant.updateEtudiant)
+  .get(etudiant.getEtudiants);
+
+app.route(prefix + '/etudiants/:id')
+  .get(etudiant.getEtudiant)
+  .delete(etudiant.deleteEtudiant);
 
 // On démarre le serveur
 app.listen(port, "0.0.0.0");
