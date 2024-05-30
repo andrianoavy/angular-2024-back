@@ -15,7 +15,84 @@ function getAssignments(req, res){
 }
 */
 
-function getAssignmentsStudents() { }
+function getAssignmentsStudents(idEtudiant) {
+    return Assignment.aggregate(
+        [
+            {
+                $project: {
+                    nom: 1,
+                    dateLimite: 1,
+                    matiere:1,
+                    rendus: {
+                        $filter: {
+                            input: '$rendus',
+                            as: 'etudiant',
+                            cond: { 
+                                $or: [
+                                    {$eq: ['$$etudiant._id', idEtudiant]},
+                                    {$eq: ['$$etudiant._id', ObjectId(idEtudiant)]}
+                                ]
+                            }
+                        }
+                    },
+                    nonRendus: {
+                        $filter: {
+                            input: '$nonRendus',
+                            as: 'etudiant',
+                            cond: { 
+                                $or: [
+                                    {$eq: ['$$etudiant._id', idEtudiant]},
+                                    {$eq: ['$$etudiant._id', ObjectId(idEtudiant)]}
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    nom: 1,
+                    dateLimite: 1,
+                    matiere:1,
+                    etudiantData: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$rendus' }, 0] },
+                            then: {
+                                rendus: true,
+                                note: { $arrayElemAt: ['$rendus.note', 0] },
+                                dateDeRendu: { $arrayElemAt: ['$rendus.dateDeRendu', 0] },
+                                remarques: { $arrayElemAt: ['$rendus.remarques', 0] }
+                            },
+                            else: {
+                                $cond: {
+                                    if: { $gt: [{ $size: '$nonRendus' }, 0] },
+                                    then: { rendus: false },
+                                    else: null
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $match: {
+                    'etudiantData.rendus': { $exists: true }
+                }
+            },
+            {
+                $project: {
+                    nom: '$nom',
+                    matiere: '$matiere',
+                    dateLimite: '$dateLimite',
+                    rendus: '$etudiantData.rendus',
+                    note: '$etudiantData.note',
+                    dateDeRendu: '$etudiantData.dateDeRendu',
+                    remarques: '$etudiantData.remarques'
+                }
+            }
+        ]
+    );
+}
 
 function getAssignments(req, res) {
     let role = "admin";
@@ -24,6 +101,11 @@ function getAssignments(req, res) {
     }
 
     let aggregateQuery = Assignment.aggregate();
+
+    if (role === "etudiant") {
+        aggregateQuery = getAssignmentsStudents(req.query['idEtudiant']);
+        console.log(aggregateQuery)
+    }
 
     Assignment.aggregatePaginate(
         aggregateQuery,
@@ -43,15 +125,16 @@ function getAssignments(req, res) {
 
 function putAnnulerNote(req, res) {
     const { assignmentId, note, dateDeRendu, remarques, ...etudiant } = req.body;
+    etudiant._id = ObjectId(etudiant._id)
 
     Assignment.findOneAndUpdate(
         { _id: ObjectId(assignmentId) },
         {
             $pull: { rendus: { _id: ObjectId(etudiant._id) } },
-            $pull: { rendus: { _id:etudiant._id } },
+            $pull: { rendus: { _id: etudiant._id } },
             $push: { nonRendus: etudiant }
         },
-            { new: true, useFindAndModify: false },
+        { new: true, useFindAndModify: false },
         (err, data) => {
             if (err) {
                 res.send(err)
@@ -63,7 +146,9 @@ function putAnnulerNote(req, res) {
 
 function putNoter(req, res) {
     const { assignmentId, ...etudiant } = req.body;
-    if(!etudiant.dateDeRendu) {
+    etudiant._id = ObjectId(etudiant._id)
+
+    if (!etudiant.dateDeRendu) {
         etudiant.dateDeRendu = Date.now();
     }
     console.log(etudiant._id);
@@ -74,7 +159,7 @@ function putNoter(req, res) {
             $pull: { nonRendus: { _id: etudiant._id } },
             $push: { rendus: etudiant }
         },
-            { new: true, useFindAndModify: false },
+        { new: true, useFindAndModify: false },
         (err, data) => {
             if (err) {
                 res.send(err)
@@ -152,4 +237,4 @@ function deleteAssignment(req, res) {
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, putNoter , putAnnulerNote};
+module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, putNoter, putAnnulerNote };
