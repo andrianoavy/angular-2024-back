@@ -1,3 +1,4 @@
+/*use strict*/
 const { Aggregate } = require('mongoose');
 let Assignment = require('../model/assignment');
 const Etudiant = require('../model/etudiant');
@@ -109,12 +110,11 @@ function getAssignmentsStudents(idEtudiant, search = undefined) {
 }
 
 function getAssignments(req, res) {
-    let role = "admin";
-    if (req.query['role']) {
-        role = req.query['role'];
-    }
+    let role = req.query['role'] | "admin";
 
     let search = req.query['search'];
+    let sortColumn = req.query['sort'] | '_id';
+    let sortOrder = parseInt(req.query['order']) | 1;
 
     let aggregateQuery = Assignment.aggregate();
 
@@ -133,6 +133,10 @@ function getAssignments(req, res) {
     if (role === "etudiant") {
         aggregateQuery = getAssignmentsStudents(req.query['idEtudiant'], search);
     }
+
+    let order = {};
+    order[sortColumn] = sortOrder;
+    aggregateQuery.sort(order);
 
     Assignment.aggregatePaginate(
         aggregateQuery,
