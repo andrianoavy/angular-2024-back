@@ -18,7 +18,9 @@ function getAssignments(req, res){
 */
 
 function getAssignmentsStudents(idEtudiant, searchText = undefined) {
-    console.log(idEtudiant)
+    if(!idEtudiant){
+        idEtudiant = process.env.STATIC_ID_ETUDIANT
+    }
     let request = [
         {
             $project: {
