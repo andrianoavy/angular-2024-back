@@ -22,8 +22,8 @@ function getEtudiants(req, res) {
         aggregateQuery = Etudiant.aggregate([{
             $match: {
                 $or: [
-                    { nom: { $regex: searchText, $options: 'i' } },
-                    { group: { $regex: searchText, $options: 'i' } }
+                    { nom: { $regex: "^"+searchText, $options: 'i' } },
+                    { group: { $regex: "^"+searchText, $options: 'i' } }
                 ]
             }
         }

@@ -25,8 +25,8 @@ function getMatieres(req, res) {
         aggregateQuery = Matiere.aggregate([{
             $match: {
                 $or: [
-                    { nom: { $regex: searchText, $options: 'i' } },
-                    { responsable: { $regex: searchText, $options: 'i' } }
+                    { nom: { $regex: "^"+searchText, $options: 'i' } },
+                    { responsable: { $regex: "^"+searchText, $options: 'i' } }
                 ]
             }
         }
@@ -52,8 +52,8 @@ function getMatieres(req, res) {
 function filterMatieres(res, searchText) {
     Matiere.find({
         $or: [
-            { nom: { $regex: searchText, $options: 'i' } },
-            { responsable: { $regex: searchText, $options: 'i' } }
+            { nom: { $regex: "^"+searchText, $options: 'i' } },
+            { responsable: { $regex: "^"+searchText, $options: 'i' } }
         ]
     }
         , (err, data) => {
