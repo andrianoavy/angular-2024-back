@@ -18,9 +18,12 @@ function getAssignments(req, res){
 */
 
 function getAssignmentsStudents(idEtudiant, searchText = undefined) {
-    if(!idEtudiant){
-        idEtudiant = process.env.STATIC_ID_ETUDIANT
+    let id = idEtudiant
+    if(!idEtudiant || idEtudiant.length < 24){
+        id = process.env.STATIC_ID_ETUDIANT
+        id = '6658621178b457da0f9fb141'
     }
+    console.log(id)
     let request = [
         {
             $project: {
@@ -34,7 +37,7 @@ function getAssignmentsStudents(idEtudiant, searchText = undefined) {
                         cond: {
                             $or: [
                                 { $eq: ['$$etudiant._id', idEtudiant] },
-                                { $eq: ['$$etudiant._id', ObjectId(idEtudiant)] }
+                                { $eq: ['$$etudiant._id', ObjectId(id)] }
                             ]
                         }
                     }
@@ -46,7 +49,7 @@ function getAssignmentsStudents(idEtudiant, searchText = undefined) {
                         cond: {
                             $or: [
                                 { $eq: ['$$etudiant._id', idEtudiant] },
-                                { $eq: ['$$etudiant._id', ObjectId(idEtudiant)] }
+                                { $eq: ['$$etudiant._id', ObjectId(id)] }
                             ]
                         }
                     }
