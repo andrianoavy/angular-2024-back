@@ -18,6 +18,7 @@ function getAssignments(req, res){
 */
 
 function getAssignmentsStudents(idEtudiant, searchText = undefined) {
+    console.log(idEtudiant)
     let request = [
         {
             $project: {
@@ -98,8 +99,8 @@ function getAssignmentsStudents(idEtudiant, searchText = undefined) {
             {
                 $match: {
                     $or: [
-                        { nom: { $regex: "^"+searchText, $options: 'i' } },
-                        { 'matiere.nom': { $regex: "^"+searchText, $options: 'i' } }
+                        { nom: { $regex: searchText, $options: 'i' } },
+                        { 'matiere.nom': { $regex: searchText, $options: 'i' } }
                     ]
                 }
             },
@@ -122,8 +123,8 @@ function getAssignments(req, res) {
         aggregateQuery = Assignment.aggregate([{
             $match: {
                 $or: [
-                    { 'nom': { $regex: "^"+search, $options: 'i' } },
-                    { 'matiere.nom': { $regex: "^"+search, $options: 'i' } }
+                    { 'nom': { $regex: search, $options: 'i' } },
+                    { 'matiere.nom': { $regex: search, $options: 'i' } }
                 ]
             }
         }

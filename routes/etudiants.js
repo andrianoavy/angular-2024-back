@@ -13,6 +13,10 @@ function getEtudiants(req, res){
 }
 */
 
+function getStaticId(req, res){
+   res.send({id:process.env.STATIC_ID_STUDENT}); 
+}
+
 function getEtudiants(req, res) {
     let aggregateQuery = Etudiant.aggregate();
 
@@ -22,8 +26,8 @@ function getEtudiants(req, res) {
         aggregateQuery = Etudiant.aggregate([{
             $match: {
                 $or: [
-                    { nom: { $regex: "^"+searchText, $options: 'i' } },
-                    { group: { $regex: "^"+searchText, $options: 'i' } }
+                    { nom: { $regex: searchText, $options: 'i' } },
+                    { group: { $regex: searchText, $options: 'i' } }
                 ]
             }
         }
@@ -123,4 +127,4 @@ function deleteEtudiant(req, res) {
 
 
 
-module.exports = { getEtudiants, getEtudiantsGroups, postEtudiant, getEtudiant, updateEtudiant, deleteEtudiant };
+module.exports = { getEtudiants,getStaticId, getEtudiantsGroups, postEtudiant, getEtudiant, updateEtudiant, deleteEtudiant };

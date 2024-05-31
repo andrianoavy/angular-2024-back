@@ -1,5 +1,6 @@
 let express = require('express');
 let app = express();
+const path = require('path');
 require('dotenv').config()
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
@@ -82,9 +83,20 @@ app.route(prefix + '/etudiants')
 app.route(prefix + '/etudiants/groups')
   .get(etudiant.getEtudiantsGroups)
 
+app.route(prefix + '/etudiants/static')
+  .get(etudiant.getStaticId)
+
 app.route(prefix + '/etudiants/:id')
   .get(etudiant.getEtudiant)
   .delete(etudiant.deleteEtudiant);
+
+// Servir les fichier static
+app.use(express.static(path.join(__dirname, 'public/browser')));
+
+// Rediriger le reste vers index.html
+app.get('*', (_, res) => {
+  res.sendFile(path.join(__dirname, 'public/browser/index.html'));
+});
 
 // On démarre le serveur
 app.listen(port, "0.0.0.0");
