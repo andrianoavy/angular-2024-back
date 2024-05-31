@@ -17,7 +17,7 @@ function getAssignments(req, res){
 }
 */
 
-function getAssignmentsStudents(idEtudiant, search = undefined) {
+function getAssignmentsStudents(idEtudiant, searchText = undefined) {
     let request = [
         {
             $project: {
@@ -93,7 +93,7 @@ function getAssignmentsStudents(idEtudiant, search = undefined) {
         }
     ];
 
-    if (search) {
+    if (searchText) {
         request = [
             {
                 $match: {
@@ -110,11 +110,11 @@ function getAssignmentsStudents(idEtudiant, search = undefined) {
 }
 
 function getAssignments(req, res) {
-    let role = req.query['role'] | "admin";
+    let role = req.query.role || "admin";
 
     let search = req.query['search'];
-    let sortColumn = req.query['sort'] | '_id';
-    let sortOrder = parseInt(req.query['order']) | 1;
+    let sortColumn = req.query['sort'] || '_id';
+    let sortOrder = parseInt(req.query['order']) || 1;
 
     let aggregateQuery = Assignment.aggregate();
 
