@@ -1,5 +1,6 @@
 let express = require('express');
 let app = express();
+require('dotenv').config()
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
 let etudiant = require('./routes/etudiants');
@@ -11,7 +12,7 @@ mongoose.Promise = global.Promise;
 
 // remplacer toute cette chaine par l'URI de connexion à votre propre base dans le cloud s
 // const uri = 'mongodb+srv://mb1:toto@cluster0.lxvcyxy.mongodb.net/assignments?retryWrites=true&w=majority&appName=Cluster0';
-const uri = 'mongodb://127.0.0.1:27017/db2?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.10.3';
+const uri = process.env.URI;
 const options = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
