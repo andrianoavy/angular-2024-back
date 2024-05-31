@@ -1,3 +1,4 @@
+const { Aggregate } = require('mongoose');
 let Assignment = require('../model/assignment');
 const Etudiant = require('../model/etudiant');
 const ObjectId = require('mongoose').Types.ObjectId;
@@ -15,83 +16,96 @@ function getAssignments(req, res){
 }
 */
 
-function getAssignmentsStudents(idEtudiant) {
-    return Assignment.aggregate(
-        [
-            {
-                $project: {
-                    nom: 1,
-                    dateLimite: 1,
-                    matiere: 1,
-                    rendus: {
-                        $filter: {
-                            input: '$rendus',
-                            as: 'etudiant',
-                            cond: {
-                                $or: [
-                                    { $eq: ['$$etudiant._id', idEtudiant] },
-                                    { $eq: ['$$etudiant._id', ObjectId(idEtudiant)] }
-                                ]
-                            }
-                        }
-                    },
-                    nonRendus: {
-                        $filter: {
-                            input: '$nonRendus',
-                            as: 'etudiant',
-                            cond: {
-                                $or: [
-                                    { $eq: ['$$etudiant._id', idEtudiant] },
-                                    { $eq: ['$$etudiant._id', ObjectId(idEtudiant)] }
-                                ]
-                            }
+function getAssignmentsStudents(idEtudiant, search = undefined) {
+    let request = [
+        {
+            $project: {
+                nom: 1,
+                dateLimite: 1,
+                matiere: 1,
+                rendus: {
+                    $filter: {
+                        input: '$rendus',
+                        as: 'etudiant',
+                        cond: {
+                            $or: [
+                                { $eq: ['$$etudiant._id', idEtudiant] },
+                                { $eq: ['$$etudiant._id', ObjectId(idEtudiant)] }
+                            ]
                         }
                     }
-                }
-            },
-            {
-                $project: {
-                    nom: 1,
-                    dateLimite: 1,
-                    matiere: 1,
-                    etudiantData: {
-                        $cond: {
-                            if: { $gt: [{ $size: '$rendus' }, 0] },
-                            then: {
-                                rendus: true,
-                                note: { $arrayElemAt: ['$rendus.note', 0] },
-                                dateDeRendu: { $arrayElemAt: ['$rendus.dateDeRendu', 0] },
-                                remarques: { $arrayElemAt: ['$rendus.remarques', 0] }
-                            },
-                            else: {
-                                $cond: {
-                                    if: { $gt: [{ $size: '$nonRendus' }, 0] },
-                                    then: { rendus: false },
-                                    else: null
-                                }
-                            }
+                },
+                nonRendus: {
+                    $filter: {
+                        input: '$nonRendus',
+                        as: 'etudiant',
+                        cond: {
+                            $or: [
+                                { $eq: ['$$etudiant._id', idEtudiant] },
+                                { $eq: ['$$etudiant._id', ObjectId(idEtudiant)] }
+                            ]
                         }
                     }
-                }
-            },
-            {
-                $match: {
-                    'etudiantData.rendus': { $exists: true }
-                }
-            },
-            {
-                $project: {
-                    nom: '$nom',
-                    matiere: '$matiere',
-                    dateLimite: '$dateLimite',
-                    rendus: '$etudiantData.rendus',
-                    note: '$etudiantData.note',
-                    dateDeRendu: '$etudiantData.dateDeRendu',
-                    remarques: '$etudiantData.remarques'
                 }
             }
-        ]
-    );
+        },
+        {
+            $project: {
+                nom: 1,
+                dateLimite: 1,
+                matiere: 1,
+                etudiantData: {
+                    $cond: {
+                        if: { $gt: [{ $size: '$rendus' }, 0] },
+                        then: {
+                            rendus: true,
+                            note: { $arrayElemAt: ['$rendus.note', 0] },
+                            dateDeRendu: { $arrayElemAt: ['$rendus.dateDeRendu', 0] },
+                            remarques: { $arrayElemAt: ['$rendus.remarques', 0] }
+                        },
+                        else: {
+                            $cond: {
+                                if: { $gt: [{ $size: '$nonRendus' }, 0] },
+                                then: { rendus: false },
+                                else: null
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $match: {
+                'etudiantData.rendus': { $exists: true }
+            }
+        },
+        {
+            $project: {
+                nom: '$nom',
+                matiere: '$matiere',
+                dateLimite: '$dateLimite',
+                rendus: '$etudiantData.rendus',
+                note: '$etudiantData.note',
+                dateDeRendu: '$etudiantData.dateDeRendu',
+                remarques: '$etudiantData.remarques'
+            }
+        }
+    ];
+
+    if (search) {
+        request = [
+            {
+                $match: {
+                    $or: [
+                        { nom: { $regex: searchText, $options: 'i' } },
+                        { 'matiere.nom': { $regex: searchText, $options: 'i' } }
+                    ]
+                }
+            },
+            ...request];
+    }
+
+    return Assignment.aggregate(request);
 }
 
 function getAssignments(req, res) {
@@ -100,17 +114,30 @@ function getAssignments(req, res) {
         role = req.query['role'];
     }
 
+    let search = req.query['search'];
+
     let aggregateQuery = Assignment.aggregate();
 
+    if (search) {
+        aggregateQuery = Assignment.aggregate([{
+            $match: {
+                $or: [
+                    { 'nom': { $regex: search, $options: 'i' } },
+                    { 'matiere.nom': { $regex: search, $options: 'i' } }
+                ]
+            }
+        }
+        ]);
+    }
+
     if (role === "etudiant") {
-        aggregateQuery = getAssignmentsStudents(req.query['idEtudiant']);
-        console.log(aggregateQuery)
+        aggregateQuery = getAssignmentsStudents(req.query['idEtudiant'], search);
     }
 
     Assignment.aggregatePaginate(
         aggregateQuery,
         {
-            page: parseInt(req.query.page)+1 || 1,
+            page: parseInt(req.query.page) + 1 || 1,
             limit: parseInt(req.query.limit) || 10
         },
         (err, data) => {
